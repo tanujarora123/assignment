@@ -14,7 +14,7 @@ exports.protect = asyncHandler(async (req, res, next) => {
 	}
 
 	if (!token) {
-		return next(new CustomError('Please provide token', 400));
+		return next(new CustomError('Please provide token', 401));
 	}
 
 	try {
@@ -26,6 +26,6 @@ exports.protect = asyncHandler(async (req, res, next) => {
 
 		next();
 	} catch (err) {
-		return next(new CustomError('Not a valid token', 400));
+		return next(new CustomError('Not a valid token', 401));
 	}
 });

@@ -6,14 +6,12 @@ exports.register = asyncHandler(async (req, res, next) => {
 	const { password } = req.body;
 
 	if (!checkStrongPass(password)) {
-		return next(new CustomError('Password is not strong enough', 400));
+		return next(new CustomError('Password is not strong enough', 501));
 	}
 
-	const user = await UserModel.create(req.body);
+	await UserModel.create(req.body);
 
-	const token = user.getSignedToken();
-
-	res.status(200).json({ success: true, data: user, token });
+	res.status(200).json({ message: 'Account successfully created' });
 });
 
 exports.login = asyncHandler(async (req, res, next) => {
@@ -28,29 +26,42 @@ exports.login = asyncHandler(async (req, res, next) => {
 		);
 	}
 
-	const user = await UserModel.findOne({ email });
+	let user = await UserModel.findOne({ email });
 
 	if (!user) {
-		return next(new CustomError('Invalid Credentials E', 400));
+		return next(new CustomError('Invalid Credentials', 401));
 	}
 
 	const isMatch = await user.matchPassword(password);
 
 	if (!isMatch) {
-		return next(new CustomError('Invalid Credentials P', 400));
+		return next(new CustomError('Invalid Credentials', 401));
 	}
 
 	if (user.role !== role) {
-		return next(new CustomError('Invalid Credentials R', 400));
+		return next(new CustomError('Invalid Credentials', 401));
 	}
 
 	const token = user.getSignedToken();
 
-	res.status(200).json({ success: true, token });
+	user = { ...user._doc };
+	delete user.password;
+
+	res.status(200).json({
+		message: 'Logged in successfully',
+		data: user,
+		token: { token, uid: user.uid, email: user.email },
+	});
 });
 
 exports.getMe = asyncHandler(async (req, res, next) => {
 	res.status(200).json({ success: true, data: req.user });
+});
+
+exports.getAllUsers = asyncHandler(async (req, res, next) => {
+	const users = await UserModel.find(req.query);
+
+	res.status(200).json({ success: true, data: users });
 });
 
 const checkStrongPass = pass => {
