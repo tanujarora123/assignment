@@ -49,6 +49,10 @@ exports.login = asyncHandler(async (req, res, next) => {
 	res.status(200).json({ success: true, token });
 });
 
+exports.getMe = asyncHandler(async (req, res, next) => {
+	res.status(200).json({ success: true, data: req.user });
+});
+
 const checkStrongPass = pass => {
 	const exp = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})/;
 	return exp.test(pass);
